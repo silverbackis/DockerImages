@@ -6,20 +6,18 @@ RUN apk add --no-cache --virtual .build-deps \
 		$PHPIZE_DEPS \
 		icu-dev \
 		yarn \
-		zlib-dev
+		zlib-dev \
+    imagemagick-dev \
+    freetype-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libssh-dev
 
 ENV APCU_VERSION 5.1.11
 
 RUN set -xe
-RUN apt-get update
 
-RUN apt-get install -y \
-      imagemagick-dev \
-      freetype-dev \
-      libpng-dev \
-      libjpeg-turbo-dev \
-      libssh-dev \
-      git
+RUN apk add --no-cache git
 
 RUN pecl install apcu-${APCU_VERSION}
 RUN pecl install imagick
