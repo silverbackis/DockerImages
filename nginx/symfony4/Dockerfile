@@ -1,4 +1,4 @@
-FROM nginx:1.13-alpine
+FROM nginx:alpine
 
-COPY conf.d /etc/nginx/conf.d/
+RUN envsubst < conf.d/default.conf > /etc/nginx/conf.d/default.conf
 COPY public /srv/api/public
