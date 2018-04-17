@@ -53,29 +53,30 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 # Speed up composer builds - concurrent requests
-RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-suggest --classmap-authoritative
-
-WORKDIR /srv/api
-
+#RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-suggest --classmap-authoritative
+#
+#WORKDIR /srv/api
+#
 # Prevent Symfony Flex from generating a project ID at build time
-ARG SYMFONY_SKIP_REGISTRATION=1
-ARG APP_ENV=prod
+#ARG SYMFONY_SKIP_REGISTRATION=1
+#ARG APP_ENV=prod
+#
+#COPY composer.json composer.lock ./
+#RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-suggest
+#
+#COPY . ./
+#
+#RUN mkdir -p var/cache var/sessions var/log
+#
+#RUN composer dump-autoload --classmap-authoritative --no-dev
+#RUN chmod +x bin/console
+#RUN chown -R www-data var
+#
+#VOLUME /srv/api/var
+#
+#COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+#RUN chmod +x /usr/local/bin/docker-entrypoint
+#
+#ENTRYPOINT ["docker-entrypoint"]
 
-COPY composer.json composer.lock ./
-RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-suggest
-
-COPY . ./
-
-RUN mkdir -p var/cache var/sessions var/log
-
-RUN composer dump-autoload --classmap-authoritative --no-dev
-RUN chmod +x bin/console
-RUN chown -R www-data var
-
-VOLUME /srv/api/var
-
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-RUN chmod +x /usr/local/bin/docker-entrypoint
-
-ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
