@@ -3,15 +3,21 @@ ARG ALPINE_VERSION=3.7
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 RUN apk add --no-cache --virtual .build-deps \
-    $PHPIZE_DEPS \
-    icu-dev \
-    yarn \
-    zlib-dev \
-    imagemagick-dev \
-    freetype-dev \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    libssh-dev
+  $PHPIZE_DEPS \
+  icu-dev \
+  yarn \
+  zlib-dev \
+  imagemagick-dev \
+  freetype-dev \
+  libpng-dev \
+  libjpeg-turbo-dev \
+  libssh-dev
+
+RUN apk add --no-cache
+  imagemagick \
+  freetype \
+  libpng \
+  libjpeg-turbo
 
 ENV APCU_VERSION 5.1.11
 
@@ -37,7 +43,6 @@ RUN docker-php-ext-install \
   zip
 
 RUN docker-php-ext-configure gd \
-        --with-gd
     	  --with-freetype-dir=/usr/include/ \
     	  --with-png-dir=/usr/include/ \
     	  --with-jpeg-dir=/usr/include/
