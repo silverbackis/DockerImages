@@ -2,6 +2,8 @@ ARG PHP_VERSION=7.2
 ARG ALPINE_VERSION=3.7
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
+RUN set -xe
+
 RUN apk add --no-cache --virtual .build-deps \
   $PHPIZE_DEPS \
   icu-dev \
@@ -13,18 +15,14 @@ RUN apk add --no-cache --virtual .build-deps \
   libjpeg-turbo-dev \
   libssh-dev
 
-RUN apk add --no-cache
+RUN apk add --no-cache \
+  git \
   imagemagick \
   freetype \
   libpng \
   libjpeg-turbo
 
 ENV APCU_VERSION 5.1.11
-
-RUN set -xe
-
-RUN apk add --no-cache git
-
 RUN pecl install apcu-${APCU_VERSION}
 RUN pecl install imagick
 
@@ -43,9 +41,9 @@ RUN docker-php-ext-install \
   zip
 
 RUN docker-php-ext-configure gd \
-    	  --with-freetype-dir=/usr/include/ \
-    	  --with-png-dir=/usr/include/ \
-    	  --with-jpeg-dir=/usr/include/
+  --with-freetype-dir=/usr/include/ \
+  --with-png-dir=/usr/include/ \
+  --with-jpeg-dir=/usr/include/
 
 RUN apk del .build-deps
 
