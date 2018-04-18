@@ -21,12 +21,10 @@ RUN apk add --no-cache git
 
 RUN pecl install apcu-${APCU_VERSION}
 RUN pecl install imagick
-RUN pecl install xdebug
 
 RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
 RUN docker-php-ext-enable --ini-name 05-opcache.ini opcache
 RUN docker-php-ext-enable imagick
-RUN docker-php-ext-enable xdebug
 
 RUN docker-php-ext-configure gd \
     	  --with-freetype-dir=/usr/include/ \
@@ -57,19 +55,7 @@ RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-suggest 
 
 WORKDIR /srv/api
 
-# Prevent Symfony Flex from generating a project ID at build time
-#ARG SYMFONY_SKIP_REGISTRATION=1
-#ARG APP_ENV=prod
-#
-#COPY composer.json composer.lock ./
-#RUN composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-suggest
-#
-#COPY . ./
-
 RUN mkdir -p var/cache var/sessions var/log
-
-#RUN composer dump-autoload --classmap-authoritative --no-dev
-#RUN chmod +x bin/console
 
 RUN chown -R www-data var
 VOLUME /srv/api/var
