@@ -3,10 +3,10 @@ ARG ALPINE_VERSION=3.7
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 RUN apk add --no-cache --virtual .build-deps \
-		$PHPIZE_DEPS \
-		icu-dev \
-		yarn \
-		zlib-dev \
+    $PHPIZE_DEPS \
+    icu-dev \
+    yarn \
+    zlib-dev \
     imagemagick-dev \
     freetype-dev \
     libpng-dev \
