@@ -22,8 +22,8 @@ RUN apk add --no-cache \
   freetype \
   libpng \
   libjpeg-turbo \
-   # for intl
-   g++
+  # for intl
+  icu-libs
 
 ENV APCU_VERSION 5.1.11
 RUN pecl install apcu-${APCU_VERSION}
@@ -35,7 +35,6 @@ RUN docker-php-ext-configure gd \
   --with-png-dir=/usr/include/ \
   --with-jpeg-dir=/usr/include/
 
-RUN docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
 RUN docker-php-ext-install \
   exif \
   bcmath \
@@ -44,6 +43,7 @@ RUN docker-php-ext-install \
   pdo_mysql \
   intl \
   zip
+RUN docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
 
 RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
 RUN docker-php-ext-enable --ini-name 05-opcache.ini opcache
