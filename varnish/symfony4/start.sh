@@ -3,7 +3,7 @@ set -xe
 
 # Convert environment variables in the conf to fixed entries
 # http://stackoverflow.com/questions/21056450/how-to-inject-environment-variables-in-varnish-configuration
-for name in VARNISH_BACKEND_PORT VARNISH_BACKEND_IP
+for name in VARNISH_HOST VARNISH_BACKEND_PORT VARNISH_BAN_CONTAINER ACCEPT_COOKIES
 do
     eval value=\$$name
     sed -i "s|\${${name}}|${value}|g" /etc/varnish/default.vcl
