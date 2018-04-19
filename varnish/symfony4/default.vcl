@@ -90,7 +90,7 @@ sub vcl_hit {
   } elsif (std.healthy(req.backend_hint)) {
     # The backend is healthy
     # Fetch the object from the backend
-    return (fetch);
+    return (miss);
   } else {
     # No fresh object and the backend is not healthy
     if (obj.ttl + obj.grace > 0s) {
