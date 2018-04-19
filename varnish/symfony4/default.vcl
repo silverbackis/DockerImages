@@ -3,8 +3,8 @@ vcl 4.0;
 import std;
 
 backend default {
-  .host = "nginx";
-  .port = "80";
+  .host = "${VARNISH_HOST}";
+  .port = "${VARNISH_BACKEND_PORT}";
   # Health check
   #.probe = {
   #  .url = "/";
@@ -18,7 +18,7 @@ backend default {
 # Hosts allowed to send BAN requests
 acl ban {
   "localhost";
-  "php";
+  "${VARNISH_BAN_CONTAINER}";
 }
 
 sub vcl_backend_response {
@@ -63,7 +63,7 @@ sub vcl_recv {
   if (req.http.Cookie) {
     set req.http.Cookie = ";" + req.http.Cookie;
     set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
-    set req.http.Cookie = regsuball(req.http.Cookie, ";(PHPSESSID)=", "; \1=");
+    set req.http.Cookie = regsuball(req.http.Cookie, ";(${ACCEPT_COOKIES})=", "; \1=");
     set req.http.Cookie = regsuball(req.http.Cookie, ";[^ ][^;]*", "");
     set req.http.Cookie = regsuball(req.http.Cookie, "^[; ]+|[; ]+$", "");
 
