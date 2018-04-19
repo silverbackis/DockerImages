@@ -25,8 +25,6 @@ RUN apk add --no-cache \
   # for intl
   icu-libs
 
-
-
 ENV APCU_VERSION 5.1.11
 RUN pecl install apcu-${APCU_VERSION}
 RUN pecl install imagick
@@ -69,6 +67,8 @@ RUN mkdir -p var/cache var/sessions var/log
 
 RUN chown -R www-data var
 VOLUME /srv/api/var
+
+EXPOSE 9000
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
