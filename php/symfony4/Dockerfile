@@ -3,6 +3,7 @@ ARG ALPINE_VERSION=3.7
 FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
 
 RUN set -xe
+RUN apk upgrade --update
 
 RUN apk add --no-cache --virtual .build-deps \
   $PHPIZE_DEPS \
@@ -26,6 +27,12 @@ ENV APCU_VERSION 5.1.11
 RUN pecl install apcu-${APCU_VERSION}
 RUN pecl install imagick
 
+RUN docker-php-ext-configure gd \
+  --with-gd
+  --with-freetype-dir=/usr/include/ \
+  --with-png-dir=/usr/include/ \
+  --with-jpeg-dir=/usr/include/
+
 RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
 RUN docker-php-ext-enable --ini-name 05-opcache.ini opcache
 RUN docker-php-ext-enable imagick
@@ -39,11 +46,6 @@ RUN docker-php-ext-install \
   pdo_mysql \
   intl \
   zip
-
-RUN docker-php-ext-configure gd \
-  --with-freetype-dir=/usr/include/ \
-  --with-png-dir=/usr/include/ \
-  --with-jpeg-dir=/usr/include/
 
 RUN apk del .build-deps
 
