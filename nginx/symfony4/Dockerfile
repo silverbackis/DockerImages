@@ -5,4 +5,5 @@ ENV UPSTREAM_PORT=9000
 COPY ./default.conf /srv/api/default.conf
 COPY ./start.sh /usr/local/bin/start
 RUN chmod +x /usr/local/bin/start
-CMD ["start", " && ", "nginx", "-g", "daemon off;"]
+ENTRYPOINT ["start"]
+CMD ["nginx", "-g", "daemon off;"]
