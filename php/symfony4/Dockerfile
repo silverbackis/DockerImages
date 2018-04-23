@@ -40,7 +40,7 @@ RUN docker-php-ext-install bcmath
 RUN docker-php-ext-install sockets
 RUN docker-php-ext-install intl
 RUN docker-php-ext-install zip
-RUN docker-php-ext-install pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql
 RUN docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
 
 RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
@@ -50,7 +50,7 @@ RUN docker-php-ext-enable imagick
 RUN apk del .build-deps
 
 COPY php.ini /usr/local/etc/php/php.ini
-COPY php-fpm.conf /usr/local/etc/php-fpm.d/www-override.conf
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/99-overrides.conf
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
