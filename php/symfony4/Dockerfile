@@ -50,7 +50,7 @@ RUN docker-php-ext-enable imagick
 RUN apk del .build-deps
 
 COPY php.ini /usr/local/etc/php/php.ini
-COPY php-fpm.conf /usr/local/etc/php-fpm.d/99-overrides.conf
+# COPY php-fpm.conf /usr/local/etc/php-fpm.d/99-overrides.conf
 
 ENV COMPOSER_ALLOW_SUPERUSER 1
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
