@@ -35,14 +35,12 @@ RUN docker-php-ext-configure gd \
   --with-png-dir=/usr/include/ \
   --with-jpeg-dir=/usr/include/
 
-RUN docker-php-ext-install \
-  exif \
-  bcmath \
-  sockets \
-  pdo \
-  pdo_mysql \
-  intl \
-  zip
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install bcmath
+RUN docker-php-ext-install sockets
+RUN docker-php-ext-install intl
+RUN docker-php-ext-install zip
+RUN docker-php-ext-install pdo_mysql
 RUN docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
 
 RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
