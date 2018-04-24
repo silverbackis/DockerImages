@@ -8,7 +8,6 @@ RUN apk upgrade --update
 RUN apk add --no-cache --virtual .build-deps \
   $PHPIZE_DEPS \
   icu-dev \
-  yarn \
   zlib-dev \
   imagemagick-dev \
   freetype-dev \
@@ -22,6 +21,7 @@ RUN apk add --no-cache \
   freetype \
   libpng \
   libjpeg-turbo \
+  yarn \
   # for intl
   icu-libs
 
