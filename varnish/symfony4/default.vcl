@@ -60,7 +60,7 @@ sub vcl_recv {
     return(synth(400, "ApiPlatform-Ban-Regex HTTP header must be set."));
   }
 
-  if (req.http.Cookie) {
+  if (req.http.Cookie && req.method == "GET") {
     set req.http.Cookie = ";" + req.http.Cookie;
     set req.http.Cookie = regsuball(req.http.Cookie, "; +", ";");
     set req.http.Cookie = regsuball(req.http.Cookie, ";(${ACCEPT_COOKIES})=", "; \1=");
