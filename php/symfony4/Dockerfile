@@ -1,9 +1,9 @@
 ARG PHP_VERSION=7
+FROM php:${PHP_VERSION}-fpm-alpine AS symfony4_php
+
 ENV APCU_VERSION 5.1.14
 ENV COMPOSER_ALLOW_SUPERUSER 1
 ENV PATH="${PATH}:/root/.composer/vendor/bin"
-
-FROM php:${PHP_VERSION}-fpm-alpine AS symfony4_php
 
 # persistent / runtime deps
 RUN apk add --no-cache \
@@ -18,7 +18,6 @@ RUN apk add --no-cache \
   yarn \
   # for intl
   icu-libs
-;
 
 RUN set -eux; \
 	apk add --no-cache --virtual .build-deps \
@@ -31,7 +30,7 @@ RUN set -eux; \
     freetype-dev \
     libpng-dev \
     libjpeg-turbo-dev \
-    libssh-dev
+    libssh-dev \
 	; \
 	\
 	docker-php-ext-configure zip --with-libzip; \
@@ -81,16 +80,14 @@ COPY symfony4.ini $PHP_INI_DIR/conf.d/
 COPY php-fpm.conf /usr/local/etc/php-fpm.d/zz-symfony4.conf
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
-ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN set -eux; \
 	composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
 	composer clear-cache
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 WORKDIR /srv/api
 
 # build for production
-ARG APP_ENV=prod
+#ARG APP_ENV=prod
 
 # prevent the reinstallation of vendors at every changes in the source code
 
