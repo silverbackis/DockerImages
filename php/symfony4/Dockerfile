@@ -1,21 +1,15 @@
 ARG PHP_VERSION=7
-ARG ALPINE_VERSION=3.7
-FROM php:${PHP_VERSION}-fpm-alpine${ALPINE_VERSION}
+ENV APCU_VERSION 5.1.14
+ENV COMPOSER_ALLOW_SUPERUSER 1
+ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
-RUN set -xe
-RUN apk upgrade --update
+FROM php:${PHP_VERSION}-fpm-alpine AS symfony4_php
 
-RUN apk add --no-cache --virtual .build-deps \
-  $PHPIZE_DEPS \
-  icu-dev \
-  zlib-dev \
-  imagemagick-dev \
-  freetype-dev \
-  libpng-dev \
-  libjpeg-turbo-dev \
-  libssh-dev
-
+# persistent / runtime deps
 RUN apk add --no-cache \
+  acl \
+  file \
+  gettext \
   git \
   imagemagick \
   freetype \
@@ -24,53 +18,104 @@ RUN apk add --no-cache \
   yarn \
   # for intl
   icu-libs
+;
 
-ENV APCU_VERSION 5.1.11
-RUN pecl install apcu-${APCU_VERSION}
-RUN pecl install imagick
+RUN set -eux; \
+	apk add --no-cache --virtual .build-deps \
+		$PHPIZE_DEPS \
+		icu-dev \
+		libzip-dev \
+		postgresql-dev \
+		zlib-dev \
+    imagemagick-dev \
+    freetype-dev \
+    libpng-dev \
+    libjpeg-turbo-dev \
+    libssh-dev
+	; \
+	\
+	docker-php-ext-configure zip --with-libzip; \
+	docker-php-ext-configure gd \
+    --with-gd \
+    --with-freetype-dir=/usr/include/ \
+    --with-png-dir=/usr/include/ \
+    --with-jpeg-dir=/usr/include/; \
+	docker-php-ext-install -j$(nproc) \
+		intl \
+		pdo_mysql \
+		zip \
+		exif \
+		bcmath \
+		sockets \
+		gd \
+	; \
+	pecl install \
+		apcu-${APCU_VERSION} \
+		xdebug \
+	; \
+	pecl install imagick ; \
+	pecl clear-cache; \
+	docker-php-ext-enable \
+		apcu \
+		opcache \
+		imagick \
+	; \
+	\
+	runDeps="$( \
+		scanelf --needed --nobanner --format '%n#p' --recursive /usr/local/lib/php/extensions \
+			| tr ',' '\n' \
+			| sort -u \
+			| awk 'system("[ -e /usr/local/lib/" $1 " ]") == 0 { next } { print "so:" $1 }' \
+	)"; \
+	apk add --no-cache --virtual .api-phpexts-rundeps $runDeps; \
+	\
+	apk del .build-deps
 
-RUN docker-php-ext-configure gd \
-  --with-gd \
-  --with-freetype-dir=/usr/include/ \
-  --with-png-dir=/usr/include/ \
-  --with-jpeg-dir=/usr/include/
+# docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
+#  && docker-php-ext-enable --ini-name 20-apcu.ini apcu \
+#  && docker-php-ext-enable --ini-name 05-opcache.ini opcache \
 
-RUN docker-php-ext-install exif
-RUN docker-php-ext-install bcmath
-RUN docker-php-ext-install sockets
-RUN docker-php-ext-install intl
-RUN docker-php-ext-install zip
-RUN docker-php-ext-install pdo_mysql
-RUN docker-php-ext-install -j$(getconf _NPROCESSORS_ONLN) gd
-
-RUN docker-php-ext-enable --ini-name 20-apcu.ini apcu
-RUN docker-php-ext-enable --ini-name 05-opcache.ini opcache
-RUN docker-php-ext-enable imagick
-
-RUN apk del .build-deps
-
-COPY php.ini /usr/local/etc/php/php.ini
-# COPY php-fpm.conf /usr/local/etc/php-fpm.d/99-overrides.conf
-
-ENV COMPOSER_ALLOW_SUPERUSER 1
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-ENV PATH="${PATH}:/root/.composer/vendor/bin"
+RUN ln -s $PHP_INI_DIR/php.ini-production $PHP_INI_DIR/php.ini
+COPY symfony4.ini $PHP_INI_DIR/conf.d/
+COPY php-fpm.conf /usr/local/etc/php-fpm.d/zz-symfony4.conf
 
-# Speed up composer builds - concurrent requests
-RUN composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-suggest --classmap-authoritative
+# https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN set -eux; \
+	composer global require "hirak/prestissimo:^0.3" --prefer-dist --no-progress --no-suggest --classmap-authoritative; \
+	composer clear-cache
+ENV PATH="${PATH}:/root/.composer/vendor/bin"
 
 WORKDIR /srv/api
 
-RUN mkdir -p var/cache var/sessions var/log
+# build for production
+ARG APP_ENV=prod
 
-RUN chown -R www-data var
-VOLUME /srv/api/var
+# prevent the reinstallation of vendors at every changes in the source code
 
-EXPOSE 9000
+#COPY composer.json composer.lock symfony.lock ./
+#RUN set -eux; \
+#	composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest; \
+#	composer clear-cache
+
+# copy only specifically what we need
+
+#COPY bin bin/
+#COPY config config/
+#COPY public public/
+#COPY src src/
+#
+#RUN set -eux; \
+#	mkdir -p var/cache var/log; \
+#	composer dump-autoload --classmap-authoritative --no-dev; \
+#	composer run-script --no-dev post-install-cmd; \
+#	chmod +x bin/console; sync
+#
+#VOLUME /srv/api/var
 
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint
 RUN chmod +x /usr/local/bin/docker-entrypoint
 
 ENTRYPOINT ["docker-entrypoint"]
-
 CMD ["php-fpm"]
