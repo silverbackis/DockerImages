@@ -102,7 +102,7 @@ WORKDIR /srv/api
 ARG APP_ENV=prod
 
 # prevent the reinstallation of vendors at every changes in the source code
-#COPY composer.json composer.lock symfony.lock ./
+COPY composer.* symfony.lock ./
 
 # do not use .env files in production
 RUN echo '<?php return [];' > .env.local.php
@@ -110,10 +110,16 @@ RUN set -eux; \
 	composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest; \
 	composer clear-cache
 
+# copy only specifically what we need
+COPY bin bin/
+COPY config config/
+COPY public public/
+COPY src src/
+
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
-	chmod +x bin/console; sync
+	sync
 VOLUME /srv/api/var
 
 COPY _docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
