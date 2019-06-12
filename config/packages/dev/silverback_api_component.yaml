@@ -1,3 +1,0 @@
-silverback_api_component:
-    password_reset:
-        repeat_ttl_seconds: 0
