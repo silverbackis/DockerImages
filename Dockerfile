@@ -1,16 +1,4 @@
-# This is using API Platform's Dockerfile
-
-# the different stages of this Dockerfile are meant to be built into separate images
-# https://docs.docker.com/develop/develop-images/multistage-build/#stop-at-a-specific-build-stage
-# https://docs.docker.com/compose/compose-file/#target
-
-
-# https://docs.docker.com/engine/reference/builder/#understand-how-arg-and-from-interact
-ARG PHP_VERSION=7.3
-
-
-# "php" stage
-FROM php:${PHP_VERSION}-fpm-alpine AS sbwa_php
+FROM php:7.3-fpm-alpine
 
 # Enable Blackfire probe
 RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
@@ -22,11 +10,11 @@ RUN version=$(php -r "echo PHP_MAJOR_VERSION.PHP_MINOR_VERSION;") \
     && rm -rf /tmp/blackfire /tmp/blackfire-probe.tar.gz
 
 # Enable configured cron jobs
-#COPY _docker/php/crontab /etc/cron.d/app-cron
-#RUN chmod 0644 /etc/cron.d/app-cron; \
-#    crontab /etc/cron.d/app-cron; \
-#    touch /var/log/cron.log
-#CMD cron
+COPY _docker/php/crontab /etc/cron.d/app-cron
+RUN chmod 0644 /etc/cron.d/app-cron; \
+    crontab /etc/cron.d/app-cron; \
+    touch /var/log/cron.log
+CMD cron
 
 # persistent / runtime deps
 RUN apk add --no-cache \
@@ -96,9 +84,9 @@ RUN set -eux; \
 	apk del .build-deps
 
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
-#RUN ln -s $PHP_INI_DIR/php.prod.ini $PHP_INI_DIR/php.ini
-#COPY _docker/php/mods-available/* $PHP_INI_DIR/mods-available/
-#COPY _docker/php/conf.d/silverback-web-apps.ini $PHP_INI_DIR/conf.d/silverback-web-apps.ini
+RUN ln -s $PHP_INI_DIR/php.prod.ini $PHP_INI_DIR/php.ini
+COPY _docker/php/mods-available/* $PHP_INI_DIR/mods-available/
+COPY _docker/php/conf.d/silverback-web-apps.ini $PHP_INI_DIR/conf.d/silverback-web-apps.ini
 
 # https://getcomposer.org/doc/03-cli.md#composer-allow-superuser
 ENV COMPOSER_ALLOW_SUPERUSER=1
@@ -122,20 +110,14 @@ RUN set -eux; \
 	composer install --prefer-dist --no-dev --no-autoloader --no-scripts --no-progress --no-suggest; \
 	composer clear-cache
 
-# copy only specifically what we need
-#COPY bin bin/
-#COPY config config/
-#COPY public public/
-#COPY src src/
-
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
 	composer dump-autoload --classmap-authoritative --no-dev; \
 	chmod +x bin/console; sync
 VOLUME /srv/api/var
 
-#COPY _docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
-#RUN chmod +x /usr/local/bin/docker-entrypoint
+COPY _docker/php/docker-entrypoint.sh /usr/local/bin/docker-entrypoint
+RUN chmod +x /usr/local/bin/docker-entrypoint
 
 ENTRYPOINT ["docker-entrypoint"]
 CMD ["php-fpm"]
