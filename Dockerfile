@@ -111,10 +111,10 @@ RUN set -eux; \
 	composer clear-cache
 
 # copy only specifically what we need
-COPY bin bin/
-COPY config config/
-COPY public public/
-COPY src src/
+#COPY bin bin/
+#COPY config config/
+#COPY public public/
+#COPY src src/
 
 RUN set -eux; \
 	mkdir -p var/cache var/log; \
