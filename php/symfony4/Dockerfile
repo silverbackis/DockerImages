@@ -51,8 +51,8 @@ RUN set -eux; \
 	pecl install \
 		apcu-${APCU_VERSION} \
 		xdebug \
+		imagick \
 	; \
-	pecl install imagick ; \
 	pecl clear-cache; \
 	docker-php-ext-enable \
 		apcu \
